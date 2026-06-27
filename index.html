@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracker · Programme</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d0d0d;
+  --s1:#141414;
+  --s2:#1a1a1a;
+  --s3:#222;
+  --b1:#1f1f1f;
+  --b2:#2a2a2a;
+  --b3:#333;
+  --t1:#ececec;
+  --t2:#aaa;
+  --t3:#555;
+  --A:#c8f55a;
+  --B:#f5875a;
+  --C:#5ab4f5;
+  --D:#f55a9b;
+}
+
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ══ NAV VIEWS ══ */
+.view{display:none}
+.view.active{display:block}
+
+/* ══ BOTTOM NAV ══ */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;
+  background:var(--s1);
+  border-top:1px solid var(--b2);
+  z-index:100;
+}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:.6rem .25rem .5rem;
+  background:none;border:none;color:var(--t3);
+  font-family:'Inter',sans-serif;font-size:.6rem;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  transition:color .15s;
+}
+.bnav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.bnav-btn.active{color:var(--t1)}
+
+/* ══ PAGE HEADERS ══ */
+.page-header{
+  padding:1.2rem 1.2rem .8rem;
+  display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid var(--b1);
+}
+.page-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;letter-spacing:.08em;
+}
+
+/* ══════════════════════════════════════
+   VIEW: SÉANCE
+══════════════════════════════════════ */
+
+/* week bar */
+.week-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 1.2rem;
+  background:var(--s1);
+  border-bottom:1px solid var(--b1);
+  position:sticky;top:0;z-index:10;
+}
+.week-nav-btn{
+  background:none;border:1px solid var(--b2);border-radius:3px;
+  color:var(--t2);font-size:1rem;width:2rem;height:2rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .15s,color .15s;
+}
+.week-nav-btn:hover{border-color:var(--b3);color:var(--t1)}
+.week-label{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:.1em;color:var(--t1);
+}
+.week-sub{font-size:.62rem;color:var(--t3);text-align:center;margin-top:1px}
+
+/* session tabs */
+.session-tabs{
+  display:flex;gap:0;
+  margin:1rem 1.2rem .8rem;
+  border:1px solid var(--b2);border-radius:4px;overflow:hidden;
+}
+.session-tab{
+  flex:1;background:none;border:none;border-right:1px solid var(--b2);
+  color:var(--t3);font-family:'Bebas Neue',sans-serif;
+  font-size:1.5rem;letter-spacing:.06em;
+  padding:.5rem .25rem .4rem;cursor:pointer;transition:background .15s,color .15s;
+}
+.session-tab:last-child{border-right:none}
+.session-tab.active-A{background:var(--A);color:#0d0d0d}
+.session-tab.active-B{background:var(--B);color:#0d0d0d}
+.session-tab.active-C{background:var(--C);color:#0d0d0d}
+.session-tab.active-D{background:var(--D);color:#0d0d0d}
+
+/* exercise cards */
+.ex-list{padding:0 1.2rem}
+.ex-card{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:4px;margin-bottom:.65rem;overflow:hidden;
+}
+.ex-card-header{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.65rem .9rem;cursor:pointer;user-select:none;
+}
+.ex-card-header:hover{background:var(--s2)}
+.ex-card-name{font-size:.8rem;font-weight:600;letter-spacing:.03em;flex:1}
+.ex-card-pr{font-size:.65rem;color:var(--t3);white-space:nowrap}
+.ex-card-arrow{font-size:.7rem;color:var(--t3);transition:transform .2s;margin-left:.25rem}
+.ex-card.open .ex-card-arrow{transform:rotate(180deg)}
+.ex-card-body{display:none;border-top:1px solid var(--b1)}
+.ex-card.open .ex-card-body{display:block}
+
+/* sets */
+.sets-cols{
+  display:grid;grid-template-columns:1.6rem 1fr 1fr 1fr 1.6rem;
+  gap:.2rem;padding:.4rem .9rem .2rem;
+  font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.12em;
+}
+.set-row{
+  display:grid;grid-template-columns:1.6rem 1fr 1fr 1fr 1.6rem;
+  gap:.2rem;align-items:center;
+  padding:.28rem .9rem;border-top:1px solid var(--b1);
+}
+.set-idx{font-size:.65rem;color:var(--t3);font-family:'Bebas Neue',sans-serif;text-align:center}
+.set-row input{
+  background:var(--s2);border:1px solid var(--b2);border-radius:3px;
+  color:var(--t1);font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;
+  padding:.3rem .4rem;width:100%;text-align:center;
+  -moz-appearance:textfield;
+}
+.set-row input::-webkit-outer-spin-button,.set-row input::-webkit-inner-spin-button{-webkit-appearance:none}
+.set-row input:focus{outline:none;border-color:var(--b3)}
+.set-row input::placeholder{color:var(--t3)}
+.del-set-btn{
+  background:none;border:none;color:var(--t3);cursor:pointer;
+  font-size:.7rem;text-align:center;padding:.1rem;
+  transition:color .15s;
+}
+.del-set-btn:hover{color:#e05050}
+
+.ex-foot{
+  display:flex;gap:.5rem;padding:.5rem .9rem;
+  border-top:1px solid var(--b1);
+}
+.btn-add-set{
+  flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:3px;
+  color:var(--t2);font-size:.7rem;font-weight:500;
+  padding:.38rem;cursor:pointer;transition:border-color .15s,color .15s;
+}
+.btn-add-set:hover{border-color:var(--b3);color:var(--t1)}
+
+/* prev session hint */
+.prev-hint{
+  padding:.35rem .9rem .4rem;
+  font-size:.63rem;color:var(--t3);
+  border-top:1px solid var(--b1);
+  display:flex;gap:.4rem;align-items:baseline;flex-wrap:wrap;
+}
+.prev-hint-label{color:var(--t3);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;flex-shrink:0}
+.prev-hint-sets{color:var(--t2)}
+
+/* save btn */
+.save-wrap{padding:1rem 1.2rem 5.5rem}
+.btn-save{
+  width:100%;padding:.75rem;border:none;border-radius:4px;
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.1em;
+  cursor:pointer;transition:opacity .15s;
+}
+.btn-save:active{opacity:.8}
+.btn-save-A{background:var(--A);color:#0d0d0d}
+.btn-save-B{background:var(--B);color:#0d0d0d}
+.btn-save-C{background:var(--C);color:#0d0d0d}
+.btn-save-D{background:var(--D);color:#0d0d0d}
+
+/* ══════════════════════════════════════
+   VIEW: PROGRESSION
+══════════════════════════════════════ */
+.prog-section{padding:1rem 1.2rem 0}
+.prog-ex-label{
+  font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;
+  color:var(--t3);margin-bottom:.5rem;margin-top:.8rem;
+}
+.prog-session-group{margin-bottom:1.2rem}
+.prog-session-title{
+  font-family:'Bebas Neue',sans-serif;font-size:1.1rem;
+  letter-spacing:.08em;margin-bottom:.5rem;
+}
+.prog-card{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:4px;overflow:hidden;margin-bottom:.5rem;
+}
+.prog-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.55rem .9rem;cursor:pointer;
+}
+.prog-card-header:hover{background:var(--s2)}
+.prog-card-name{font-size:.78rem;font-weight:600}
+.prog-card-trend{font-size:.65rem}
+.trend-up{color:#7edc3a}
+.trend-eq{color:var(--t3)}
+.trend-dn{color:#e05050}
+.prog-card-body{display:none;border-top:1px solid var(--b1)}
+.prog-card.open .prog-card-body{display:block}
+
+/* sparkline canvas */
+.sparkline-wrap{padding:.6rem .9rem .5rem;display:flex;align-items:center;gap:.8rem}
+canvas.spark{flex-shrink:0}
+.spark-stats{display:flex;flex-direction:column;gap:.25rem}
+.spark-stat{font-size:.65rem;color:var(--t2)}
+.spark-stat strong{color:var(--t1);font-weight:600}
+
+/* history list inside prog */
+.prog-history{max-height:160px;overflow-y:auto}
+.prog-history-row{
+  display:flex;gap:.5rem;align-items:baseline;
+  padding:.3rem .9rem;border-top:1px solid var(--b1);
+  font-size:.65rem;
+}
+.prog-history-week{color:var(--t3);flex-shrink:0;width:4.5rem}
+.prog-history-sets{color:var(--t2)}
+.prog-history-best{margin-left:auto;color:var(--t3);font-size:.6rem}
+
+/* ══════════════════════════════════════
+   VIEW: SEMAINES (calendar)
+══════════════════════════════════════ */
+.weeks-list{padding:1rem 1.2rem 5.5rem}
+.week-item{
+  background:var(--s1);border:1px solid var(--b1);border-radius:4px;
+  margin-bottom:.65rem;overflow:hidden;
+}
+.week-item-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem .9rem;cursor:pointer;
+}
+.week-item-header:hover{background:var(--s2)}
+.week-item-label{
+  font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;
+}
+.week-item-sessions{display:flex;gap:.3rem}
+.session-dot{
+  width:8px;height:8px;border-radius:50%;
+}
+.week-item-body{display:none;border-top:1px solid var(--b1)}
+.week-item.open .week-item-body{display:block}
+.week-session-row{
+  padding:.5rem .9rem;border-bottom:1px solid var(--b1);
+  font-size:.72rem;
+}
+.week-session-row:last-child{border-bottom:none}
+.week-session-tag{
+  display:inline-block;
+  font-family:'Bebas Neue',sans-serif;font-size:.85rem;
+  letter-spacing:.06em;margin-right:.5rem;
+}
+.week-session-exs{color:var(--t2);font-size:.65rem;margin-top:.15rem}
+
+/* ══ TOAST ══ */
+#toast{
+  position:fixed;bottom:4.5rem;left:50%;
+  transform:translateX(-50%) translateY(3rem);
+  background:var(--s3);border:1px solid var(--b3);
+  color:var(--t1);padding:.5rem 1.1rem;border-radius:20px;
+  font-size:.72rem;opacity:0;pointer-events:none;
+  transition:transform .25s ease,opacity .25s ease;white-space:nowrap;z-index:999;
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ══ VIEW: SÉANCE ══ -->
+<div class="view active" id="view-seance">
+  <div class="page-header">
+    <span class="page-title">Séance</span>
+    <span id="today-label" style="font-size:.65rem;color:var(--t3);letter-spacing:.1em"></span>
+  </div>
+  <div class="week-bar">
+    <button class="week-nav-btn" id="wk-prev">◀</button>
+    <div>
+      <div class="week-label" id="wk-label"></div>
+      <div class="week-sub" id="wk-sub"></div>
+    </div>
+    <button class="week-nav-btn" id="wk-next">▶</button>
+  </div>
+  <div class="session-tabs" id="session-tabs"></div>
+  <div class="ex-list" id="ex-list"></div>
+  <div class="save-wrap" id="save-wrap"></div>
+</div>
+
+<!-- ══ VIEW: PROGRESSION ══ -->
+<div class="view" id="view-prog">
+  <div class="page-header">
+    <span class="page-title">Progression</span>
+  </div>
+  <div id="prog-content" class="prog-section" style="padding-bottom:5.5rem"></div>
+</div>
+
+<!-- ══ VIEW: SEMAINES ══ -->
+<div class="view" id="view-weeks">
+  <div class="page-header">
+    <span class="page-title">Semaines</span>
+  </div>
+  <div class="weeks-list" id="weeks-list"></div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bnav">
+  <button class="bnav-btn active" data-view="seance">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Séance
+  </button>
+  <button class="bnav-btn" data-view="prog">
+    <svg viewBox="0 0 24 24"><polyline points="4 17 9 12 13 16 20 7"/></svg>
+    Progression
+  </button>
+  <button class="bnav-btn" data-view="weeks">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Semaines
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════ */
+const SESSIONS = {
+  A:{label:'Jambes · Quad',   exercises:['Squat','Hip Thrust','Leg Extension','Leg Curl allongé','Extension mollet']},
+  B:{label:'Épaules · Bras',  exercises:['Développé militaire','Rowing','Shrug','Curl marteau','Extension triceps poulie','Extension poignet']},
+  C:{label:'Postérieur',      exercises:['Soulevé de terre','Hip Thrust','Fentes bulgares','Leg Curl assis','Extension mollet']},
+  D:{label:'Pecs · Dos · Bras',exercises:['Développé couché','Traction','Élévation latérale','Curl biceps','Triceps poulie haute','Extension poignet']}
+};
+const COLORS={A:'#c8f55a',B:'#f5875a',C:'#5ab4f5',D:'#f55a9b'};
+const SK='gym_wk_v1';
+
+/* ══ STORE ══ */
+// store = { [weekKey]: { A: { [exName]: [{weight,reps,note}] }, B: {...}, ... }, ... }
+// weekKey = "2026-W26"
+function load(){try{return JSON.parse(localStorage.getItem(SK))||{};}catch{return {};}}
+function save(s){localStorage.setItem(SK,JSON.stringify(s));}
+
+/* ══ WEEK UTILS ══ */
+function isoWeek(d){
+  const t=new Date(d);
+  t.setHours(0,0,0,0);
+  t.setDate(t.getDate()+3-(t.getDay()+6)%7);
+  const w=new Date(t.getFullYear(),0,4);
+  return[t.getFullYear(),1+Math.round(((t-w)/864e5-3+(w.getDay()+6)%7)/7)];
+}
+function weekKey(d){const[y,w]=isoWeek(d);return`${y}-W${String(w).padStart(2,'0')}`;}
+function weekLabel(k){
+  const[y,w]=k.split('-W').map(Number);
+  // find monday of that week
+  const jan4=new Date(y,0,4);
+  const mon=new Date(jan4);
+  mon.setDate(jan4.getDate()-(jan4.getDay()||7)+1+7*(w-isoWeek(jan4)[1]));
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  const fmt=d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+  return{short:`S${w}`,range:`${fmt(mon)} – ${fmt(sun)}`,year:y};
+}
+function addWeeks(k,n){
+  const[y,w]=k.split('-W').map(Number);
+  const jan4=new Date(y,0,4);
+  const mon=new Date(jan4);
+  mon.setDate(jan4.getDate()-(jan4.getDay()||7)+1+7*(w-isoWeek(jan4)[1]));
+  mon.setDate(mon.getDate()+7*n);
+  return weekKey(mon);
+}
+
+/* ══ STATE ══ */
+let currentWeek=weekKey(new Date());
+let currentSession='A';
+// liveData[session][ex] = [{weight,reps,note}]
+let liveData={};
+function initLive(){
+  liveData={};
+  Object.keys(SESSIONS).forEach(s=>{
+    liveData[s]={};
+    SESSIONS[s].exercises.forEach(ex=>{liveData[s][ex]=[{weight:'',reps:'',note:''}];});
+  });
+}
+initLive();
+
+/* ══ BOTTOM NAV ══ */
+document.querySelectorAll('.bnav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const v=btn.dataset.view;
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+    if(v==='prog')renderProg();
+    if(v==='weeks')renderWeeks();
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   VIEW: SÉANCE
+══════════════════════════════════════════════════════ */
+function renderSeance(){
+  // today label
+  document.getElementById('today-label').textContent=
+    new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
+
+  // week nav
+  const wl=weekLabel(currentWeek);
+  const isCurrent=currentWeek===weekKey(new Date());
+  document.getElementById('wk-label').textContent=`${wl.short} · ${wl.year}`;
+  document.getElementById('wk-sub').textContent=wl.range+(isCurrent?' · Semaine actuelle':'');
+  document.getElementById('wk-next').disabled=isCurrent;
+  document.getElementById('wk-next').style.opacity=isCurrent?'.3':'1';
+
+  // session tabs
+  const tabsEl=document.getElementById('session-tabs');
+  tabsEl.innerHTML='';
+  Object.keys(SESSIONS).forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='session-tab'+(s===currentSession?` active-${s}`:'');
+    btn.textContent=s;
+    btn.onclick=()=>{currentSession=s;renderSeance();};
+    tabsEl.appendChild(btn);
+  });
+
+  // ex list
+  const listEl=document.getElementById('ex-list');
+  listEl.innerHTML='';
+  SESSIONS[currentSession].exercises.forEach(ex=>{
+    listEl.appendChild(buildExCard(currentSession,ex));
+  });
+
+  // save btn
+  const sw=document.getElementById('save-wrap');
+  sw.innerHTML='';
+  const btn=document.createElement('button');
+  btn.className=`btn-save btn-save-${currentSession}`;
+  btn.textContent=`Enregistrer séance ${currentSession}`;
+  btn.onclick=saveCurrentSession;
+  sw.appendChild(btn);
+}
+
+function buildExCard(session,ex){
+  const store=load();
+  const card=document.createElement('div');
+  card.className='ex-card';
+
+  /* header */
+  const hdr=document.createElement('div');
+  hdr.className='ex-card-header';
+
+  const nm=document.createElement('div');nm.className='ex-card-name';nm.textContent=ex;
+
+  // PR across all weeks
+  let allSets=[];
+  Object.values(store).forEach(wk=>{if(wk[session]&&wk[session][ex])allSets=allSets.concat(wk[session][ex]);});
+  const pr=bestSet(allSets);
+  const prEl=document.createElement('div');prEl.className='ex-card-pr';
+  prEl.textContent=pr?`PR ${pr.weight}kg×${pr.reps}`:'';
+
+  const arr=document.createElement('div');arr.className='ex-card-arrow';arr.textContent='▾';
+  hdr.appendChild(nm);hdr.appendChild(prEl);hdr.appendChild(arr);
+  hdr.onclick=()=>card.classList.toggle('open');
+  card.appendChild(hdr);
+
+  /* body */
+  const body=document.createElement('div');body.className='ex-card-body';
+
+  // prev session hint
+  const prevWk=findPrevWeekWithSession(store,session,ex);
+  if(prevWk){
+    const hint=document.createElement('div');hint.className='prev-hint';
+    const lbl=document.createElement('span');lbl.className='prev-hint-label';
+    lbl.textContent=`${weekLabel(prevWk.week).short} :`;
+    const sets=document.createElement('span');sets.className='prev-hint-sets';
+    sets.textContent=prevWk.sets.filter(s=>s.weight||s.reps)
+      .map(s=>`${s.weight||'?'}kg×${s.reps||'?'}`).join(' · ')||'—';
+    hint.appendChild(lbl);hint.appendChild(sets);
+    body.appendChild(hint);
+  }
+
+  // sets header
+  const sh=document.createElement('div');sh.className='sets-cols';
+  sh.innerHTML='<span>#</span><span>Poids kg</span><span>Reps</span><span>Note</span><span></span>';
+  body.appendChild(sh);
+
+  // sets container
+  const sc=document.createElement('div');
+  body.appendChild(sc);
+
+  function renderSets(){
+    sc.innerHTML='';
+    liveData[session][ex].forEach((set,i)=>{
+      const row=document.createElement('div');row.className='set-row';
+      const idx=document.createElement('div');idx.className='set-idx';idx.textContent=i+1;
+
+      const wIn=document.createElement('input');wIn.type='number';wIn.placeholder='—';
+      wIn.value=set.weight;wIn.min=0;wIn.step=.5;
+      wIn.oninput=e=>{liveData[session][ex][i].weight=e.target.value;updatePR();};
+
+      const rIn=document.createElement('input');rIn.type='number';rIn.placeholder='—';
+      rIn.value=set.reps;rIn.min=0;
+      rIn.oninput=e=>{liveData[session][ex][i].reps=e.target.value;updatePR();};
+
+      const nIn=document.createElement('input');nIn.type='text';nIn.placeholder='—';
+      nIn.value=set.note;
+      nIn.oninput=e=>{liveData[session][ex][i].note=e.target.value;};
+
+      const del=document.createElement('button');del.className='del-set-btn';del.textContent='✕';
+      del.onclick=()=>{if(liveData[session][ex].length>1){liveData[session][ex].splice(i,1);renderSets();}};
+
+      row.appendChild(idx);row.appendChild(wIn);row.appendChild(rIn);row.appendChild(nIn);row.appendChild(del);
+      sc.appendChild(row);
+    });
+  }
+  function updatePR(){
+    const b=bestSet(liveData[session][ex]);
+    prEl.textContent=b?`↑ ${b.weight}kg×${b.reps}`:'';
+  }
+  renderSets();
+
+  // add set btn
+  const foot=document.createElement('div');foot.className='ex-foot';
+  const addBtn=document.createElement('button');addBtn.className='btn-add-set';
+  addBtn.textContent='+ Série';
+  addBtn.onclick=()=>{liveData[session][ex].push({weight:'',reps:'',note:''});renderSets();};
+  foot.appendChild(addBtn);
+  body.appendChild(foot);
+
+  card.appendChild(body);
+  return card;
+}
+
+function findPrevWeekWithSession(store,session,ex){
+  const weeks=Object.keys(store).sort().reverse();
+  for(const w of weeks){
+    if(w>=currentWeek)continue;
+    if(store[w][session]&&store[w][session][ex]&&store[w][session][ex].some(s=>s.weight||s.reps)){
+      return{week:w,sets:store[w][session][ex]};
+    }
+  }
+  return null;
+}
+
+function bestSet(sets){
+  let b=null;
+  (sets||[]).forEach(s=>{
+    if(s.weight&&s.reps){
+      const v=parseFloat(s.weight)*parseInt(s.reps);
+      if(!b||v>b.v)b={v,weight:s.weight,reps:s.reps};
+    }
+  });
+  return b;
+}
+
+function saveCurrentSession(){
+  const s=currentSession;
+  const filled=SESSIONS[s].exercises.filter(ex=>liveData[s][ex].some(set=>set.weight||set.reps));
+  if(!filled.length){showToast('Aucune donnée à enregistrer');return;}
+
+  const store=load();
+  if(!store[currentWeek])store[currentWeek]={};
+  if(!store[currentWeek][s])store[currentWeek][s]={};
+  filled.forEach(ex=>{store[currentWeek][s][ex]=liveData[s][ex].filter(set=>set.weight||set.reps);});
+  save(store);
+
+  // reset live
+  SESSIONS[s].exercises.forEach(ex=>{liveData[s][ex]=[{weight:'',reps:'',note:''}];});
+  showToast(`Séance ${s} — S${weekLabel(currentWeek).short.slice(1)} enregistrée ✓`);
+  renderSeance();
+}
+
+/* week nav */
+document.getElementById('wk-prev').onclick=()=>{currentWeek=addWeeks(currentWeek,-1);initLive();renderSeance();};
+document.getElementById('wk-next').onclick=()=>{
+  const nw=addWeeks(currentWeek,1);
+  if(nw<=weekKey(new Date())){currentWeek=nw;initLive();renderSeance();}
+};
+
+/* ══════════════════════════════════════════════════════
+   VIEW: PROGRESSION
+══════════════════════════════════════════════════════ */
+function renderProg(){
+  const container=document.getElementById('prog-content');
+  container.innerHTML='';
+  const store=load();
+
+  Object.keys(SESSIONS).forEach(s=>{
+    const group=document.createElement('div');group.className='prog-session-group';
+    const title=document.createElement('div');title.className='prog-session-title';
+    title.textContent=`${s} · ${SESSIONS[s].label}`;
+    title.style.color=COLORS[s];
+    group.appendChild(title);
+
+    SESSIONS[s].exercises.forEach(ex=>{
+      // gather data points per week
+      const pts=[];
+      Object.keys(store).sort().forEach(wk=>{
+        if(store[wk][s]&&store[wk][s][ex]){
+          const b=bestSet(store[wk][s][ex]);
+          if(b)pts.push({week:wk,weight:parseFloat(b.weight),reps:parseInt(b.reps),vol:parseFloat(b.weight)*parseInt(b.reps),sets:store[wk][s][ex]});
+        }
+      });
+
+      const card=document.createElement('div');card.className='prog-card';
+
+      const ch=document.createElement('div');ch.className='prog-card-header';
+      const cn=document.createElement('div');cn.className='prog-card-name';cn.textContent=ex;
+      const ct=document.createElement('div');ct.className='prog-card-trend';
+
+      if(pts.length>=2){
+        const last=pts[pts.length-1].weight,prev=pts[pts.length-2].weight;
+        const diff=last-prev;
+        ct.className='prog-card-trend '+(diff>0?'trend-up':diff<0?'trend-dn':'trend-eq');
+        ct.textContent=diff>0?`+${diff}kg ↑`:diff<0?`${diff}kg ↓`:'= stable';
+      } else if(pts.length===1){
+        ct.className='prog-card-trend trend-eq';
+        ct.textContent=`${pts[0].weight}kg`;
+      } else {
+        ct.className='prog-card-trend trend-eq';ct.textContent='—';
+      }
+
+      ch.appendChild(cn);ch.appendChild(ct);
+      ch.onclick=()=>card.classList.toggle('open');
+      card.appendChild(ch);
+
+      const cb=document.createElement('div');cb.className='prog-card-body';
+
+      if(pts.length>0){
+        // sparkline
+        const sw=document.createElement('div');sw.className='sparkline-wrap';
+        const cvs=document.createElement('canvas');
+        cvs.className='spark';cvs.width=140;cvs.height=48;
+        drawSparkline(cvs,pts.map(p=>p.weight),COLORS[s]);
+
+        const stats=document.createElement('div');stats.className='spark-stats';
+        const maxW=Math.max(...pts.map(p=>p.weight));
+        const minW=Math.min(...pts.map(p=>p.weight));
+        stats.innerHTML=`
+          <div class="spark-stat"><strong>${maxW}kg</strong> max</div>
+          <div class="spark-stat"><strong>${minW}kg</strong> min</div>
+          <div class="spark-stat"><strong>${pts.length}</strong> séance${pts.length>1?'s':''}</div>`;
+        sw.appendChild(cvs);sw.appendChild(stats);
+        cb.appendChild(sw);
+
+        // history
+        const hist=document.createElement('div');hist.className='prog-history';
+        [...pts].reverse().forEach(p=>{
+          const row=document.createElement('div');row.className='prog-history-row';
+          const wl=weekLabel(p.week);
+          row.innerHTML=`
+            <span class="prog-history-week">${wl.short} · ${wl.year}</span>
+            <span class="prog-history-sets">${p.sets.filter(s=>s.weight||s.reps).map(s=>`${s.weight||'?'}kg×${s.reps||'?'}${s.note?` <em style="color:var(--t3)">(${s.note})</em>`:''}`).join(' · ')}</span>
+            <span class="prog-history-best">meilleur ${p.weight}kg×${p.reps}</span>`;
+          hist.appendChild(row);
+        });
+        cb.appendChild(hist);
+      } else {
+        const empty=document.createElement('div');
+        empty.style.cssText='padding:.6rem .9rem;font-size:.65rem;color:var(--t3);font-style:italic';
+        empty.textContent='Aucune donnée enregistrée';
+        cb.appendChild(empty);
+      }
+
+      card.appendChild(cb);
+      group.appendChild(card);
+    });
+
+    container.appendChild(group);
+  });
+}
+
+function drawSparkline(canvas,values,color){
+  if(values.length<1)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pad=6;
+  ctx.clearRect(0,0,W,H);
+  if(values.length===1){
+    ctx.fillStyle=color;
+    ctx.beginPath();ctx.arc(W/2,H/2,3,0,Math.PI*2);ctx.fill();
+    return;
+  }
+  const mn=Math.min(...values),mx=Math.max(...values);
+  const range=mx-mn||1;
+  const xs=values.map((_,i)=>pad+(W-2*pad)*i/(values.length-1));
+  const ys=values.map(v=>H-pad-(H-2*pad)*(v-mn)/range);
+
+  // fill
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,color+'44');grad.addColorStop(1,color+'00');
+  ctx.beginPath();ctx.moveTo(xs[0],ys[0]);
+  xs.forEach((x,i)=>{if(i>0)ctx.lineTo(x,ys[i]);});
+  ctx.lineTo(xs[xs.length-1],H);ctx.lineTo(xs[0],H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+
+  // line
+  ctx.beginPath();ctx.moveTo(xs[0],ys[0]);
+  xs.forEach((x,i)=>{if(i>0)ctx.lineTo(x,ys[i]);});
+  ctx.strokeStyle=color;ctx.lineWidth=1.8;ctx.stroke();
+
+  // last dot
+  ctx.beginPath();ctx.arc(xs[xs.length-1],ys[ys.length-1],3,0,Math.PI*2);
+  ctx.fillStyle=color;ctx.fill();
+}
+
+/* ══════════════════════════════════════════════════════
+   VIEW: SEMAINES
+══════════════════════════════════════════════════════ */
+function renderWeeks(){
+  const container=document.getElementById('weeks-list');
+  container.innerHTML='';
+  const store=load();
+  const weeks=Object.keys(store).sort().reverse();
+
+  if(!weeks.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='color:var(--t3);font-size:.75rem;text-align:center;margin-top:3rem;font-style:italic';
+    empty.textContent='Aucune séance enregistrée';
+    container.appendChild(empty);
+    return;
+  }
+
+  weeks.forEach(wk=>{
+    const wl=weekLabel(wk);
+    const sessions=Object.keys(store[wk]);
+
+    const item=document.createElement('div');item.className='week-item';
+
+    const hdr=document.createElement('div');hdr.className='week-item-header';
+    const lbl=document.createElement('div');lbl.className='week-item-label';
+    lbl.textContent=`${wl.short} · ${wl.year}  –  ${wl.range}`;
+
+    const dots=document.createElement('div');dots.className='week-item-sessions';
+    sessions.sort().forEach(s=>{
+      const d=document.createElement('div');
+      d.className='session-dot';
+      d.style.background=COLORS[s];
+      d.title=`Séance ${s}`;
+      dots.appendChild(d);
+    });
+
+    hdr.appendChild(lbl);hdr.appendChild(dots);
+    hdr.onclick=()=>item.classList.toggle('open');
+    item.appendChild(hdr);
+
+    const body=document.createElement('div');body.className='week-item-body';
+    sessions.sort().forEach(s=>{
+      const row=document.createElement('div');row.className='week-session-row';
+      const tag=document.createElement('span');tag.className='week-session-tag';
+      tag.textContent=s;tag.style.color=COLORS[s];
+      row.appendChild(tag);
+      row.appendChild(document.createTextNode(SESSIONS[s].label));
+
+      const exs=document.createElement('div');exs.className='week-session-exs';
+      const exNames=Object.keys(store[wk][s]);
+      exs.textContent=exNames.map(ex=>{
+        const b=bestSet(store[wk][s][ex]);
+        return b?`${ex} ${b.weight}kg×${b.reps}`:ex;
+      }).join('  ·  ');
+      row.appendChild(exs);
+      body.appendChild(row);
+    });
+    item.appendChild(body);
+    container.appendChild(item);
+  });
+}
+
+/* ══ TOAST ══ */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ══ INIT ══ */
+renderSeance();
+</script>
+</body>
+</html>
